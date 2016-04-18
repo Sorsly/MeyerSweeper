@@ -1,0 +1,4 @@
+Changelog
+2016.04.18
+-use the abel file from lab8 for shifting to 2x16 lcd display (active high logic)
+-managed to get lab8 working
