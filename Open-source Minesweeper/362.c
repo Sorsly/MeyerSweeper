@@ -122,6 +122,7 @@ void GameControl(int irow, int icol, int nrow, int ncol, int mine[][ncol], int m
   int j;
   int trow;
   int tcol;
+  if(mask[irow][icol] != mine[irow][icol]){
   mask[irow][icol] = mine[irow][icol];
   if (mine[irow][icol] == -1){
     printf("Fail!!!\n");
@@ -136,6 +137,7 @@ void GameControl(int irow, int icol, int nrow, int ncol, int mine[][ncol], int m
 	}
       }
     }
+  }
   }
     
 } 
