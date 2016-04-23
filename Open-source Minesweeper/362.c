@@ -24,6 +24,8 @@ int main()
   //  int nbomb = 10;//number of bomb
   int nclick = 0;
   int nflag = 0;
+  int fail = 0;
+  int win = 0;
   int mine[NROW][NCOL];//map with mine and other things
   int mask[NROW][NCOL];//cover map
    int i;
@@ -40,6 +42,9 @@ int main()
    printf("\n");
     }
    nclick = GameControl(irow,icol,nclick,mine,mask);
+   if(nclick == -1){
+     fail = 1;
+   }
           printf("Mask: \n");
    for(i = 0; i < NROW; i++){
    for(j = 0; j < NCOL; j++){
@@ -49,6 +54,9 @@ int main()
     }
    printf("Number Click: %d\n",nclick);
    nflag = FlagControl(frow,fcol,nflag,mask);
+   if((nflag + nclick) == NBOMB){
+     win = 1;
+   }
    printf("Number Flag: %d\n",nflag);
           printf("Flag: \n");
    for(i = 0; i < NROW; i++){
@@ -131,7 +139,7 @@ void Create_board(int board[][NCOL])
   }
 }
 
-int GameControl(int irow, int icol, int nclick, int mine[][NCOL], int mask[][NCOL])
+int GameControl( int irow, int icol, int nclick, int mine[][NCOL], int mask[][NCOL])
 {
   int i;
   int j;
@@ -142,7 +150,7 @@ int GameControl(int irow, int icol, int nclick, int mine[][NCOL], int mask[][NCO
   nclick++;
   if (mine[irow][icol] == -1){
     printf("Fail!!!\n");
-    return;
+    return -1;
   }
   if (mask[irow][icol] == 0){
     for(i = 0;i < 3;i++){
