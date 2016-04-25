@@ -1,0 +1,5 @@
+using the time.h header and printf functions, there seems to be 2 related compile errors.
+
+-time can probably be fixed by removing that library and relying off of the TIM interrupt for accurate time keeping
+-"sprintf" is recommended as the replacement for printf according to this forum post:
+	https://community.freescale.com/thread/12014
