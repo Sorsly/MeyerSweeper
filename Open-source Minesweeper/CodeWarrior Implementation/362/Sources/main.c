@@ -2,9 +2,9 @@
 #include "derivative.h"      /* derivative-specific definitions */
 #include <mc9s12c32.h>
 
-#include<stdio.h>
-#include<stdlib.h>
-#include<time.h>
+//#include<stdio.h>
+//#include<stdlib.h>
+//#include<time.h>
 
 #define NROW 4
 #define NCOL 10
@@ -43,24 +43,23 @@ int timer = 0;    //time counter var
   rather than use the built in SS pin on port M (for spi), just make sure to
   enable the SS pin local to each device 
 */
-int jhd162a_en;     //2x16 lcd    pull high to dis
-int st7735r_en;     //TFT 1.8" lcd
-int st7735r_rst;    //ST7735r reset command
+int display1_en;     //lower-half 4x20 pull high to dis
+int display2_en;     //upper-half 4x20 pull high to dis
 
 /* Game var declarations*/
-//  int nrow = 10;//size
-//  int ncol = 10;//size
-int irow = 0;//place clicked
-int icol = 9;//place clicked
-int frow = 0;//place flag
-int fcol = 1;//place flag
-//  int nbomb = 10;//number of bomb
-int nclick = 0;
+//  int nrow = 10;        //size
+//  int ncol = 10;        //size
+int irow = 0;             //place clicked
+int icol = 9;             //place clicked
+int frow = 0;             //place flag
+int fcol = 1;             //place flag
+//  int nbomb = 10;       //number of bomb
+int nclick = 0;           //number of empty tiles with no mines nearby
 int nflag = 0;
 int fail = 0;
 int win = 0;
-int mine[NROW][NCOL];//map with mine and other things
-int mask[NROW][NCOL];//cover map
+int mine[NROW][NCOL];     //map with mine and other things
+int mask[NROW][NCOL];     //cover map
 int i;
 int j;
 
@@ -162,7 +161,7 @@ void  initializations(void) {
 	 		  			 		  		
 /*
 ***********************************************************************
- Main
+ Main - Setup
 ***********************************************************************
 */
 void main(void) {
@@ -171,58 +170,67 @@ void main(void) {
 	initializations(); 		  			 		  		
 	EnableInterrupts;
   
-  printf("%ld\n",time(0));
+  //printf("%ld\n",time(0));  //prints time elapsed since 1970 
   
   Initial_board(mine);
   Initial_mask(mask); 
   Create_board(mine);
-  
-  printf("Mine: \n");
-  
-  for(i = 0; i < NROW; i++){
-    for(j = 0; j < NCOL; j++){
-      printf("%2d ",mine[i][j]);
-    }
-    printf("\n");
-  }
-  
-  nclick = GameControl(irow,icol,nclick,mine,mask);
-  
-  if(nclick == -1){
-    fail = 1;
-  }
-  
-  printf("Mask: \n");
-  
-  for(i = 0; i < NROW; i++){
-    for(j = 0; j < NCOL; j++){
-      printf("%2d ",mask[i][j]);
-    }
-    printf("\n");
-  }
-  
-  printf("Number Click: %d\n",nclick);
-  
-  nflag = FlagControl(frow,fcol,nflag,mask);
-  
-  if((nflag + nclick) == NBOMB){
-    win = 1;
-  }
-  
-  printf("Number Flag: %d\n",nflag);
-  printf("Flag: \n");
-  
-  for(i = 0; i < NROW; i++){
-    for(j = 0; j < NCOL; j++){
-      printf("%2d ",mask[i][j]);
-    }
-  printf("\n");
-  }
 
+/*
+***********************************************************************
+ Main - Loop
+***********************************************************************
+*/
 
   for(;;) {
-    PTT_PTT3 = !jhd162a_en; //jhd162a_en = 1 means PTT_PTT3 = 0 (en)
-    PTT_PTT5 = !st7735r_en; //st7735r_en = 1 means PTT_PTT5 = 0 (en)
+    PTT_PTT3 = !display1_en; //display1_en = 1 means PTT_PTT3 = 0 (en)
+    PTT_PTT5 = !display2_en; //display2_en = 1 means PTT_PTT5 = 0 (en)
+
+
+
+    //printf("Mine: \n");
+    
+    for(i = 0; i < NROW; i++){
+      for(j = 0; j < NCOL; j++){
+        //printf("%2d ",mine[i][j]);
+      }
+      //printf("\n");
+    }
+    
+    nclick = GameControl(irow,icol,nclick,mine,mask);
+    
+    if(nclick == -1){
+      fail = 1;
+    }
+    
+    //printf("Mask: \n");
+    
+    for(i = 0; i < NROW; i++){
+      for(j = 0; j < NCOL; j++){
+        //printf("%2d ",mask[i][j]);
+      }
+      //printf("\n");
+    }
+    
+    //printf("Number Click: %d\n",nclick);
+    
+    nflag = FlagControl(frow,fcol,nflag,mask);
+    
+    if((nflag + nclick) == NBOMB){
+      win = 1;
+    }
+    
+    //printf("Number Flag: %d\n",nflag);
+    //printf("Flag: \n");
+    
+    for(i = 0; i < NROW; i++){
+      for(j = 0; j < NCOL; j++){
+        //printf("%2d ",mask[i][j]);
+      }
+    //printf("\n");
+    }
+  
+  
 
 //If the left pushbutton
     if(leftpb && !runstp){
@@ -288,12 +296,13 @@ void Create_board(int board[][NCOL])
   int i;
   int j;
   int nbomb = NBOMB;
-  int n = time(0);
+  //int n = time(0);
+  int n = timer;
   while(nbomb != 0){
     srand(n);
     i = rand() % NROW;
     j = rand() % NCOL;
-    printf("i = %d, j = %d\n",i,j);
+    //printf("i = %d, j = %d\n",i,j);
     if(!(board[i][j] == -1)){
       board[i][j] = -1;
       if((i - 1) != -1 && (j - 1) != -1 && (!(board[i-1][j-1] == -1))){
@@ -342,7 +351,7 @@ int GameControl( int irow, int icol, int nclick, int mine[][NCOL], int mask[][NC
   mask[irow][icol] = mine[irow][icol];
   nclick++;
     if (mine[irow][icol] == -1){
-      printf("Fail!!!\n");
+      //printf("Fail!!!\n");
       return -1;
     }
     if (mask[irow][icol] == 0){
@@ -466,7 +475,7 @@ void shiftout(char x)   //pg161
 { 
   int i;
   
-  if(jhd162a_en && !st7735r_en){  
+  if(display1_en && !display2_en){  
   // read the SPTEF bit, continue if bit is 1
     if(SPISR&0x20){  
     // write data to SPI data register
@@ -478,7 +487,7 @@ void shiftout(char x)   //pg161
         }
       }
     }
-  }else if(!jhd162a_en && st7735r_en){
+  }else if(!display1_en && display2_en){
   
   }
 }
@@ -510,7 +519,7 @@ void lcdwait(int time)
 
 void send_byte(char x)
 {
-  if(jhd162a_en && !st7735r_en){    
+  if(display1_en && !display2_en){    
   // shift out character
     shiftout(x);
   // pulse LCD clock line low->high->low
@@ -519,7 +528,7 @@ void send_byte(char x)
     PTT_PTT4 = 0;
   // wait 2 ms for LCD to process data
     lcdwait(2);
-  }else if(!jhd162a_en && st7735r_en){
+  }else if(!display1_en && display2_en){
   
   }  
 }
@@ -532,12 +541,12 @@ void send_byte(char x)
 
 void send_i(char x)
 {
-  if(jhd162a_en && !st7735r_en){  
+  if(display1_en && !display2_en){  
   // set the register select line low (instruction data)
     PTT_PTT2 = 0;
   // send byte
     send_byte(x);
-  }else if(!jhd162a_en && st7735r_en){  
+  }else if(!display1_en && display2_en){  
   
   }
 }
@@ -551,11 +560,11 @@ void send_i(char x)
 
 void chgline(char x)
 {
-  if(jhd162a_en && !st7735r_en){
+  if(display1_en && !display2_en){
     PTT_PTT2 = 0;   //instruction register
     send_i(CURMOV);
     send_i(x);
-  }else if(!jhd162a_en && st7735r_en){  
+  }else if(!display1_en && display2_en){  
   
   }
 }
@@ -568,10 +577,10 @@ void chgline(char x)
  
 void print_c(char x)
 {
-  if(jhd162a_en && !st7735r_en){  
+  if(display1_en && !display2_en){  
     PTT_PTT2 = 1;   //data register
     send_byte(x);
-  }else if(!jhd162a_en && st7735r_en){
+  }else if(!display1_en && display2_en){
   
   }  
 }                                                                                                   
@@ -584,7 +593,7 @@ void print_c(char x)
 
 void pmsglcd(char str[])
 {
-  if(jhd162a_en && !st7735r_en){  
+  if(display1_en && !display2_en){  
     int i = 0;
     while(str[i] != '\0'){
       print_c(str[i]);
@@ -593,7 +602,7 @@ void pmsglcd(char str[])
       }
       i++;
     }
-  }else if(!jhd162a_en && st7735r_en){
+  }else if(!display1_en && display2_en){
   
   }  
 }
