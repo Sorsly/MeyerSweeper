@@ -1,0 +1,6 @@
+changes
+-swapped from time.h library functions to TIM interrupt functionality
+-commented out printf() statements
+-removed stdio.h and stdlib.h
+-renamed display enable vars to display1_en, display2_en
+-moved running game code to for loop section of main
